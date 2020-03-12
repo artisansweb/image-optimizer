@@ -14,7 +14,7 @@ Under the hood, this package uses [resmush.it](http://resmush.it) service to com
 
 ## Usage
 
-This package is straight-forward to use. All you need to is pass source path of your image.
+This package is straight-forward to use. All you need to do is pass source path of your image.
 
 ```php
 use ArtisansWeb\ImageOptimize\Optimizer;
