@@ -1,0 +1,67 @@
+mysqldump database
+database backup
+backup sql database
+
+
+How to Take Database Backup using PHP
+
+Are you looking to take database backup in your PHP projects? It is always recommended to backup your database periodically. Doing so, your site data will always be safe in case of any problem occurs on your server. In this article, I show you how to backup SQL database periodically and store it on your server.
+
+This article is written for the projects which are built in core PHP without any CMS or Framework. The CMS like WordPress has serveral plugins available like UpdraftPlus for <a href="https://artisansweb.net/how-to-store-wordpress-backup-to-dropbox-automatically">backing up the database</a>. In Laravel websites, user can use packages like <a href="https://artisansweb.net/take-backup-laravel-application">laravel-backup</a> for the same purposes.
+
+Spatie team has developed this <a href="https://github.com/spatie/db-dumper" target="_blank" rel="nofollow">package</a> which is useful for taking database backup in core PHP projects. This package provides support for MySQL, PostgreSQL, SQLite and MongoDB. I will discuss about MySQL database in this article. That being said, let's take a look at how this package works in backing up your database.
+
+<h3>Database Backup using PHP</h3>
+Before proceed, make sure you have your database credentials and <a href="https://getcomposer.org" target="_blank" rel="nofollow">Composer</a> is installed on your system.
+
+Open the terminal in your project root directory and run the command:
+
+<pre>composer require spatie/db-dumper</pre>
+
+Upon package installation, create a directory <code>db-backups</code>(you can give any name) where you can store your SQL backup files. Also create a file <code>backup-database.php</code> and add the code below in it.
+
+[php]
+<?php
+require_once "vendor/autoload.php";
+
+Spatie\DbDumper\Databases\MySql::create()
+    ->setDbName('DB_NAME')
+    ->setUserName('DB_USER_NAME')
+    ->setPassword('DB_PASSWORD')
+    ->dumpToFile('db-backups/'.time().'_dump.sql');
+[/php]
+
+Make sure to replace placeholders with the actual values. In the above code I appended current time to the SQL file to keep distinct file names. It will dump your database and store it in the given SQL file.
+
+The package gives more options while dumping the database. For instance, you can exclude specific tables by passing the array as below.
+
+[php]
+<?php
+Spatie\DbDumper\Databases\MySql::create()
+    ->setDbName('DB_NAME')
+    ->setUserName('DB_USER_NAME')
+    ->setPassword('DB_PASSWORD')
+    ->excludeTables(['table1', 'table2', 'table3'])
+    ->dumpToFile('db-backups/'.time().'_dump.sql');
+[/php]
+
+<h3>Automatically Backup MySQL Database from cPanel</h3>
+So far, you have a PHP file which takes your database backup. Next thing need to do is automate the backup process so you will get your backups without executing script manually.
+
+When you hosted site on the server, your hosting provider gives you cPanel where you can see the basic and advanced options for managing the website. One of feature they provided is 'Cron Jobs'. Cron jobs allow us to run a specific script(PHP file) at a certain interval. All you need to do is set an interval and pass a directory path of the PHP file. After this, your server run your script in the backgroung at the specified intervals.
+
+To set a cron, login to your cPanel and click on the 'Cron Jobs' which you may find under 'advanced' section.
+
+[cron-jobs]
+
+On the next page under the 'Add a New Cron Job' section choose the 'Once Per Day' for 'Common Settings' dropdown. It means your script will run once a daily.
+
+[add-cron-job]
+
+In the command section pass the path as below:
+
+<pre>php /home/username/public_html/backup-database.php</pre>
+
+Adjust the script path as per your hosting configurations and submit it. After this, your server start executing a script daily at midnight.
+
+I hope you understand how to take database backup in PHP and automate the process using Cron. I would like to hear your thoughts or suggestions in the comment section below.

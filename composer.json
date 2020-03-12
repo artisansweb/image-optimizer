@@ -1,0 +1,23 @@
+{
+    "name": "artisansweb/image-optimizer",
+    "description": "Optimize the images on the fly.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sajid",
+            "email": "sajid@artisansweb.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ArtisansWeb\\ImageOptimize\\": "src/"
+        }
+    },
+    "require": {},
+    "require-dev": {
+        "phpro/grumphp": "^0.17.2",
+        "squizlabs/php_codesniffer": "^3.5",
+        "phpunit/phpunit": "8.5"
+    }
+}
