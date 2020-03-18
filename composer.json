@@ -14,7 +14,9 @@
             "ArtisansWeb\\ImageOptimize\\": "src/"
         }
     },
-    "require": {},
+    "require": {
+        "guzzlehttp/guzzle": "^6.5"
+    },
     "require-dev": {
         "phpro/grumphp": "^0.17.2",
         "squizlabs/php_codesniffer": "^3.5",
