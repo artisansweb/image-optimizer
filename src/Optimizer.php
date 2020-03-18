@@ -16,6 +16,8 @@ class Optimizer
 
     public $allowed_mime_types = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'];
 
+    public $api_endpoint = 'http://api.resmush.it';
+
     public function __construct()
     {
         if (!function_exists('curl_version')) {
@@ -28,12 +30,25 @@ class Optimizer
      */
     public function buildRequest()
     {
-        $info = pathinfo($this->source);
-        $name = $info['basename'];
-        $output = new \CURLFile($this->source, $this->mime, $name);
-        return array(
-            "files" => $output,
-        );
+        if (!$this->is_curl_enabled) {
+            return array(
+                'multipart' => array(
+                    array(
+                        'name' => "files",
+                        'contents' => fopen($this->source, 'r'),
+                        'filename' => pathinfo($this->source)['basename'],
+                        'headers'  => array('Content-Type' => $this->mime)
+                    )
+                )
+            );
+        } else {
+            $info = pathinfo($this->source);
+            $name = $info['basename'];
+            $output = new \CURLFile($this->source, $this->mime, $name);
+            return array(
+                "files" => $output,
+            );
+        }
     }
 
     /**
@@ -78,13 +93,13 @@ class Optimizer
 
         try {
             if (!$this->is_curl_enabled) {
-                throw new \Exception("cURL is not enabled. Use fallback method.");
+                throw new cURLException("cURL is not enabled. Use fallback method.");
             }
 
             $data = $this->buildRequest($this->source);
 
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'http://api.resmush.it/?qlty='.$this->qlty);
+            curl_setopt($ch, CURLOPT_URL, $this->api_endpoint.'?qlty='.$this->qlty);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
@@ -107,9 +122,45 @@ class Optimizer
             } else {
                 throw new \Exception("Response does not contain compressed file URL.");
             }
+        } catch (cURLException $e) {
+            //Use guzzle http now
+            $this->useGuzzleHTTPClient();
         } catch (\Exception $e) {
             // print the error message if you want to debug API error. for e.g. echo $e->getMessage();
+            $this->qlty = 85;
+            $this->compressImage();
+        }
+    }
 
+    /**
+     * Use Guzzle HTTP client to interact with resmush.it api
+     */
+    public function useGuzzleHTTPClient()
+    {
+        try {
+            $client = new \GuzzleHttp\Client(["base_uri" => $this->api_endpoint]);
+
+            $data = $this->buildRequest($this->source);
+
+            $response = $client->request('POST', "?qlty=".$this->qlty, $data);
+
+            if (200 == $response->getStatusCode()) {
+                $response = $response->getBody();
+
+                if (!empty($response)) {
+                    $arr_result = json_decode($response);
+                    if (property_exists($arr_result, 'dest')) {
+                        $this->storeOnFilesystem($arr_result);
+                    } else {
+                        throw new \Exception("Response does not contain compressed file URL.");
+                    }
+                } else {
+                    throw new \Exception("Error Processing Request.");
+                }
+            } else {
+                throw new \Exception("Status code is not 200.");
+            }
+        } catch (\Exception $e) {
             $this->qlty = 85;
             $this->compressImage();
         }
@@ -122,12 +173,19 @@ class Optimizer
      */
     public function storeOnFilesystem($arr_result)
     {
-        $ch = curl_init($arr_result->dest);
         $fp = fopen($this->destination, 'wb');
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_exec($ch);
-        curl_close($ch);
+
+        if (!$this->is_curl_enabled) {
+            $client = new \GuzzleHttp\Client();
+            $request = $client->get($arr_result->dest, ['sink' => $fp]);
+        } else {
+            $ch = curl_init($arr_result->dest);
+            curl_setopt($ch, CURLOPT_FILE, $fp);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_exec($ch);
+            curl_close($ch);
+        }
+    
         fclose($fp);
     }
 
@@ -153,4 +211,9 @@ class Optimizer
         // Save image on disk.
         imagejpeg($image, $this->destination, $this->qlty);
     }
+}
+
+class cURLException extends \Exception
+{
+
 }
