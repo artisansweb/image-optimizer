@@ -1,5 +1,7 @@
 <?php
-namespace ArtisansWeb\ImageOptimize;
+namespace ArtisansWeb;
+
+use ArtisansWeb\Exception\CurlException;
 
 class Optimizer
 {
@@ -93,7 +95,7 @@ class Optimizer
 
         try {
             if (!$this->is_curl_enabled) {
-                throw new cURLException("cURL is not enabled. Use fallback method.");
+                throw new CurlException("cURL is not enabled. Use fallback method.");
             }
 
             $data = $this->buildRequest($this->source);
@@ -122,7 +124,7 @@ class Optimizer
             } else {
                 throw new \Exception("Response does not contain compressed file URL.");
             }
-        } catch (cURLException $e) {
+        } catch (CurlException $e) {
             //Use guzzle http now
             $this->useGuzzleHTTPClient();
         } catch (\Exception $e) {
@@ -211,9 +213,4 @@ class Optimizer
         // Save image on disk.
         imagejpeg($image, $this->destination, $this->qlty);
     }
-}
-
-class cURLException extends \Exception
-{
-
 }
