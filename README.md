@@ -35,6 +35,30 @@ $destination = 'DESTINATION_PATH_OF_IMAGE';
 $img->optimize($source, $destination);
 ```
 
+Recommeded way of using this code is on image upload. The user should optimize image on upload which will result in better perofrmance.
+
+Let's say you want to store optimized version in the 'images' folder. You can use the below code for this purpose.
+
+```php
+<?php
+require_once "vendor/autoload.php";
+
+use ArtisansWeb\Optimizer;
+
+if (isset($_POST['submit'])) {
+    $img = new Optimizer();
+    $source = $_FILES['file']['tmp_name'];
+    $destination = 'images/'.$_FILES['file']['name'];
+    $img->optimize($source, $destination);
+}
+?>
+
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <input type="submit" name="submit" value="Submit" />
+</form>
+```
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
