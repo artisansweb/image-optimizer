@@ -47,9 +47,8 @@ use ArtisansWeb\Optimizer;
 
 if (isset($_POST['submit'])) {
     $img = new Optimizer();
-    $source = $_FILES['file']['tmp_name'];
-    $destination = 'images/'.$_FILES['file']['name'];
-    $img->optimize($source, $destination);
+    move_uploaded_file($_FILES['file']['tmp_name'], 'images/'.$_FILES['file']['name']);
+    $img->optimize('images/'.$_FILES['file']['name']);
 }
 ?>
 
