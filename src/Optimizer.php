@@ -18,6 +18,8 @@ class Optimizer
 
     public $allowed_mime_types = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'];
 
+    public $allowed_file_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+
     public $api_endpoint = 'http://api.resmush.it';
 
     public function __construct()
@@ -69,6 +71,20 @@ class Optimizer
     }
 
     /**
+     * Check if file has a valid extension.
+     * @param string $file - file path which extension needs to check.
+     */
+    public function isValidExtension($file = '')
+    {
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        if (!in_array(strtolower($ext), $this->allowed_file_extensions)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Optimize the image using reSmush.it service.
      *
      * @param string $source - source file path
@@ -76,8 +92,16 @@ class Optimizer
      */
     public function optimize($source = '', $destination = '')
     {
-        $this->source = $source;
-        $this->destination = !empty($destination) ? $destination : $source;
+        $this->source = $this->destination = $source;
+
+        if (!empty($destination)) {
+            // check if destination file extension is valid
+            if (!$this->isValidExtension($destination)) {
+                return false;
+            }
+
+            $this->destination = $destination;
+        }
 
         // check if source file exists
         if (!file_exists($this->source)) {
