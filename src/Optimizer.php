@@ -71,7 +71,7 @@ class Optimizer
     }
 
     /**
-     * Check if files has a valid extension.
+     * Check if file has a valid extension.
      * @param string $file - file path which extension needs to check.
      */
     public function isValidExtension($file = '')
