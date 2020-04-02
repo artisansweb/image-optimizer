@@ -100,7 +100,7 @@ class Optimizer
                 return false;
             }
 
-            $this->destination = $destination;
+            $this->destination = $this->generateUniqueFilename($destination);
         }
 
         // check if source file exists
@@ -236,5 +236,32 @@ class Optimizer
 
         // Save image on disk.
         imagejpeg($image, $this->destination, $this->qlty);
+    }
+
+    /**
+     * Generate a unique filename for specified directory.
+     * @param string $file: path of a file
+     */
+    public function generateUniqueFilename($file = '')
+    {
+        $dir = pathinfo($file, PATHINFO_DIRNAME);
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        $filename = pathinfo($file, PATHINFO_BASENAME);
+        if ($ext) {
+            $ext = '.' . $ext;
+        }
+
+        $number = '';
+        while (file_exists($dir . "/$filename")) {
+            $new_number = (int) $number + 1;
+            if ('' == "$number$ext") {
+                $filename = "$filename-" . $new_number;
+            } else {
+                $filename = str_replace(array("-$number$ext", "$number$ext"), '-' . $new_number . $ext, $filename);
+            }
+            $number = $new_number;
+        }
+
+        return $dir.'/'.$filename;
     }
 }
