@@ -22,11 +22,15 @@ class Optimizer
 
     public $api_endpoint = 'http://api.resmush.it';
 
+    public $root_dir;
+
     public function __construct()
     {
         if (!function_exists('curl_version')) {
             $this->is_curl_enabled = false;
         }
+
+        $this->root_dir = dirname(dirname(__FILE__));
     }
 
     /**
@@ -97,6 +101,7 @@ class Optimizer
         if (!empty($destination)) {
             // check if destination file extension is valid
             if (!$this->isValidExtension($destination)) {
+                $this->logErrorMessage("Destination file ($destination) does not have a valid extension.");
                 return false;
             }
 
@@ -105,15 +110,18 @@ class Optimizer
 
         // check if source file exists
         if (!file_exists($this->source)) {
+            $this->logErrorMessage("Source file ($this->source) does not exist.");
             return false;
         }
 
         if (!$this->isValidFile()) {
+            $this->logErrorMessage("Source file ($this->source) does not have a valid extension.");
             return false;
         }
 
         // file size must be below 5MB
         if (filesize($this->source) >= 5242880) {
+            $this->logErrorMessage("Source file ($this->source) exceeded maximum allowed size limit of 5MB.");
             return false;
         }
 
@@ -263,5 +271,24 @@ class Optimizer
         }
 
         return $dir.'/'.$filename;
+    }
+
+    /**
+     * Log the error message.
+     * @param string $message: Message which needs to log in debug.log
+     */
+    public function logErrorMessage($message = '')
+    {
+
+        $log_file = $this->root_dir.'/debug.log';
+
+        if (!file_exists($log_file)) {
+            touch($log_file);
+        }
+
+        if (!empty($message)) {
+            $message = date('[d/M/Y H:i:s]').' '.$message.PHP_EOL;
+            error_log($message, 3, $log_file);
+        }
     }
 }
