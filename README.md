@@ -35,7 +35,7 @@ $destination = 'DESTINATION_PATH_OF_IMAGE';
 $img->optimize($source, $destination);
 ```
 
-Recommeded way of using this code is on image upload. The user should optimize image on upload which will result in better perofrmance.
+Recommeded way of using this code is on image upload. The user should optimize image on upload which will result in better performance.
 
 Let's say you want to store optimized version in the 'images' folder. You can use the below code for this purpose.
 
