@@ -24,6 +24,10 @@ class Optimizer
 
     public $root_dir;
 
+    public $start = 0;
+
+    public $system_max_execution_time = 0;
+
     public function __construct()
     {
         if (!function_exists('curl_version')) {
@@ -31,6 +35,10 @@ class Optimizer
         }
 
         $this->root_dir = dirname(dirname(__FILE__));
+
+        $this->start = microtime(true);
+
+        $this->system_max_execution_time = ini_get('max_execution_time');
     }
 
     /**
@@ -130,6 +138,8 @@ class Optimizer
                 throw new CurlException("cURL is not enabled. Use fallback method.");
             }
 
+            $this->resetMaxExecutionTimeIfRequired();
+
             $data = $this->buildRequest($this->source);
 
             $ch = curl_init();
@@ -171,6 +181,8 @@ class Optimizer
      */
     public function useGuzzleHTTPClient()
     {
+        $this->resetMaxExecutionTimeIfRequired();
+
         try {
             $client = new \GuzzleHttp\Client(["base_uri" => $this->api_endpoint]);
 
@@ -207,6 +219,8 @@ class Optimizer
      */
     public function storeOnFilesystem($arr_result)
     {
+        $this->resetMaxExecutionTimeIfRequired();
+
         $fp = fopen($this->destination, 'wb');
 
         if (!$this->is_curl_enabled) {
@@ -228,6 +242,8 @@ class Optimizer
      */
     public function compressImage()
     {
+        $this->resetMaxExecutionTimeIfRequired();
+
         switch ($this->mime) {
             case 'image/jpeg':
                 $image = imagecreatefromjpeg($this->source);
@@ -289,6 +305,18 @@ class Optimizer
         if (!empty($message)) {
             $message = date('[d/M/Y H:i:s]').' '.$message.PHP_EOL;
             error_log($message, 3, $log_file);
+        }
+    }
+
+    /**
+     * Reset max_execution_time if system's execution time is about to expire. It will resume the operation.
+     */
+    public function resetMaxExecutionTimeIfRequired()
+    {
+        $now = microtime(true);
+        if (($now - $this->start) >= ($this->system_max_execution_time - 10)) {
+            $this->start = $now;
+            ini_set('max_execution_time', $this->system_max_execution_time);
         }
     }
 }
