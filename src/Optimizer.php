@@ -104,8 +104,6 @@ class Optimizer
      */
     public function optimize($source = '', $destination = '')
     {
-        $this->resetMaxExecutionTimeIfRequired();
-
         $this->source = $this->destination = $source;
 
         if (!empty($destination)) {
@@ -139,6 +137,8 @@ class Optimizer
             if (!$this->is_curl_enabled) {
                 throw new CurlException("cURL is not enabled. Use fallback method.");
             }
+
+            $this->resetMaxExecutionTimeIfRequired();
 
             $data = $this->buildRequest($this->source);
 
