@@ -15,7 +15,7 @@
         }
     },
     "require": {
-        "guzzlehttp/guzzle": "^6.5"
+        "guzzlehttp/guzzle": "^7.0.1"
     },
     "require-dev": {
         "phpro/grumphp": "^0.17.2",
